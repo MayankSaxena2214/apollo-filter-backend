@@ -19,9 +19,13 @@ jobs:
           echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
+      - name: Add EC2 host to known hosts
+        run: |
+          ssh-keyscan -H 15.207.111.45 >> ~/.ssh/known_hosts
+
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@15.207.111.45 << 'EOF'
+          ssh -v -o StrictHostKeyChecking=no ubuntu@15.207.111.45 << 'EOF'
             cd ~/apollo-filter-backend
             git pull origin main
             npm install
