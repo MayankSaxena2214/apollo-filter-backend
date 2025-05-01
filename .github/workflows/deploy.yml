@@ -3,41 +3,29 @@ name: Deploy Node.js App to EC2
 on:
   push:
     branches:
-      - main   # Trigger on push to the `main` branch (change this to your branch name if different)
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
-    - name: Install dependencies
-      run: npm install
-
-    - name: Copy SSH key to GitHub Actions
-      run: |
-        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-
-    - name: Set SSH config
-      run: |
-        mkdir -p ~/.ssh
-        echo "Host *" > ~/.ssh/config
-        echo "  StrictHostKeyChecking no" >> ~/.ssh/config
-        echo "  UserKnownHostsFile /dev/null" >> ~/.ssh/config
-
-    - name: Deploy to EC2
-      run: |
-        ssh -i ~/.ssh/id_rsa ubuntu@15.207.111.45 << 'EOF'
-          cd ~/apollo-filter-backend  # Replace with the correct path if needed
-          git pull origin main
-          npm install
-          pm2 restart rest-api-server  # Replace with your actual PM2 process name if needed
-        EOF
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@15.207.111.45 << 'EOF'
+            cd ~/apollo-filter-backend
+            git pull origin main
+            npm install
+            pm2 restart all
+          EOF
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
