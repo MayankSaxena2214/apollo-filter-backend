@@ -19,6 +19,12 @@ dbConnection();
 app.use("/api/v1/doctor",doctorRouter);
 app.use("/api/v1/storage",storageRouter);
 
+app.get("/",(req,res,next)=>{
+    return res.status(200).json({
+        success:true,
+        message:"Home route newly added"
+    })
+});
 
 
 app.use(errorMiddleware);
